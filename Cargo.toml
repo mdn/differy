@@ -16,8 +16,9 @@ include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE"]
 
 [dependencies]
 sha2 = "0.9"
-async-recursion = "0.3"
 clap = "2"
+walkdir = "2"
+zip = "0.5"
 
 [dependencies.async-std]
 version = "1"
