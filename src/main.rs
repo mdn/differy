@@ -1,7 +1,7 @@
 use async_std::fs::{read_to_string, write, File};
 use async_std::path::PathBuf;
 use async_std::prelude::*;
-use clap::{App, Arg, SubCommand};
+use clap::{crate_version, App, Arg, SubCommand};
 
 mod diff;
 mod hash;
@@ -10,11 +10,12 @@ mod package;
 const CONTENT_FILENAME: &str = "content.zip";
 const UPDATE_FILENAME: &str = "update.zip";
 const REMOVED_FILENAME: &str = "removed";
+const APP_PREFIX: &str = "app";
 
 #[async_std::main]
 async fn main() -> std::io::Result<()> {
     let matches = App::new("differy")
-        .version("1.0")
+        .version(crate_version!())
         .author("Florian Dieminger <me@fiji-flo.de>")
         .about("Hash and diff all the things")
         .subcommand(
@@ -115,7 +116,7 @@ async fn main() -> std::io::Result<()> {
         let mut out_file = File::create(out).await?;
         let old = PathBuf::from(old);
         let new = PathBuf::from(new);
-        let (removed, added) = diff::diff(&old, &new).await?;
+        let (removed, added, modified) = diff::diff(&old, &new).await?;
         for filename in removed {
             out_file
                 .write_all(format!("- {}\n", filename).as_bytes())
@@ -126,6 +127,11 @@ async fn main() -> std::io::Result<()> {
                 .write_all(format!("+ {}\n", filename).as_bytes())
                 .await?;
         }
+        for filename in modified {
+            out_file
+                .write_all(format!("~ {}\n", filename).as_bytes())
+                .await?;
+        }
     }
     if let Some(matches) = matches.subcommand_matches("package") {
         let diff = matches.value_of("diff").unwrap();
@@ -133,41 +139,49 @@ async fn main() -> std::io::Result<()> {
         let out = matches.value_of("out").unwrap();
         let prefix = matches.value_of("prefix");
         let root = PathBuf::from(root);
-        let mut update_out = PathBuf::from(out);
-        if let Some(prefix) = prefix {
-            update_out.push(format!("{}-{}", &prefix, UPDATE_FILENAME));
-        } else {
-            update_out.push(UPDATE_FILENAME);
-        }
         let diff = PathBuf::from(diff);
         let diff = read_to_string(diff).await?;
-        let mut added = vec![];
-        let mut removed = vec![];
+        let mut update = vec![];
+        let mut remove = vec![];
         for line in diff.split('\n') {
             if let Some(file) = line.strip_prefix("+ ") {
-                added.push(file.to_string())
+                update.push(file.to_string())
+            }
+            if let Some(file) = line.strip_prefix("~ ") {
+                update.push(file.to_string())
             }
             if let Some(file) = line.strip_prefix("- ") {
-                removed.push(file.to_string())
+                remove.push(file.to_string())
             }
         }
-        package::zip_files(&added, &root, &update_out).await?;
+        let update_out = build_path(out, UPDATE_FILENAME, &prefix, false);
+        package::zip_files(&update, &root, &update_out, false).await?;
+        let update_out = build_path(out, UPDATE_FILENAME, &prefix, true);
+        package::zip_files(&update, &root, &update_out, true).await?;
 
-        let mut removed_out = PathBuf::from(out);
-        if let Some(prefix) = prefix {
-            removed_out.push(format!("{}-{}", &prefix, REMOVED_FILENAME));
-        } else {
-            removed_out.push(REMOVED_FILENAME);
-        }
-        write(removed_out, removed.join("\n").as_bytes()).await?;
+        let removed_out = build_path(out, REMOVED_FILENAME, &prefix, false);
+        write(removed_out, remove.join("\n").as_bytes()).await?;
 
-        let mut content_out = PathBuf::from(out);
-        if let Some(prefix) = prefix {
-            content_out.push(format!("{}-{}", &prefix, CONTENT_FILENAME));
-        } else {
-            content_out.push(CONTENT_FILENAME);
-        }
-        package::zip_dir(&root, &content_out).await?;
+        let content_out = build_path(out, CONTENT_FILENAME, &prefix, false);
+        package::zip_dir(&root, &content_out, true).await?;
+        let content_out = build_path(out, CONTENT_FILENAME, &prefix, true);
+        package::zip_dir(&root, &content_out, true).await?;
     }
     Ok(())
+}
+
+fn build_path(base: &str, file_name: &str, prefix: &Option<&str>, app: bool) -> PathBuf {
+    let mut full_name = String::new();
+    if let Some(prefix) = prefix {
+        full_name.push_str(prefix);
+        full_name.push('-');
+    }
+    if app {
+        full_name.push_str(APP_PREFIX);
+        full_name.push('-');
+    }
+    full_name.push_str(file_name);
+    let mut out = PathBuf::from(base);
+    out.push(full_name);
+    out
 }
