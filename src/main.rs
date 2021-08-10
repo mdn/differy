@@ -1,13 +1,14 @@
 use async_std::fs::{read_to_string, write, File};
-use async_std::prelude::*;
 use async_std::path::PathBuf;
+use async_std::prelude::*;
 use clap::{App, Arg, SubCommand};
 
 mod diff;
 mod hash;
 mod package;
 
-const PACKAGE_FILENAME: &str = "update.zip";
+const CONTENT_FILENAME: &str = "content.zip";
+const UPDATE_FILENAME: &str = "update.zip";
 const REMOVED_FILENAME: &str = "removed";
 
 #[async_std::main]
@@ -132,11 +133,11 @@ async fn main() -> std::io::Result<()> {
         let out = matches.value_of("out").unwrap();
         let prefix = matches.value_of("prefix");
         let root = PathBuf::from(root);
-        let mut package_out = PathBuf::from(out);
+        let mut update_out = PathBuf::from(out);
         if let Some(prefix) = prefix {
-            package_out.push(format!("{}-{}", &prefix, PACKAGE_FILENAME));
+            update_out.push(format!("{}-{}", &prefix, UPDATE_FILENAME));
         } else {
-            package_out.push(PACKAGE_FILENAME);
+            update_out.push(UPDATE_FILENAME);
         }
         let diff = PathBuf::from(diff);
         let diff = read_to_string(diff).await?;
@@ -150,7 +151,8 @@ async fn main() -> std::io::Result<()> {
                 removed.push(file.to_string())
             }
         }
-        package::zip_files(&added, &root, &package_out).await?;
+        package::zip_files(&added, &root, &update_out).await?;
+
         let mut removed_out = PathBuf::from(out);
         if let Some(prefix) = prefix {
             removed_out.push(format!("{}-{}", &prefix, REMOVED_FILENAME));
@@ -158,6 +160,14 @@ async fn main() -> std::io::Result<()> {
             removed_out.push(REMOVED_FILENAME);
         }
         write(removed_out, removed.join("\n").as_bytes()).await?;
+
+        let mut content_out = PathBuf::from(out);
+        if let Some(prefix) = prefix {
+            content_out.push(format!("{}-{}", &prefix, CONTENT_FILENAME));
+        } else {
+            content_out.push(CONTENT_FILENAME);
+        }
+        package::zip_dir(&root, &content_out).await?;
     }
     Ok(())
 }
