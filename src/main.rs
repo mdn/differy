@@ -1,16 +1,18 @@
-use async_std::fs::{read_to_string, write, File};
+use async_std::fs::{read_to_string, File};
 use async_std::path::PathBuf;
 use async_std::prelude::*;
 use clap::{crate_version, App, Arg, SubCommand};
 
+use crate::diff::{diff, parse_hashes};
+use crate::package::package_hashes;
+use crate::{
+    package::{package_content, package_update},
+};
+
+mod compress;
 mod diff;
 mod hash;
 mod package;
-
-const CONTENT_FILENAME: &str = "content.zip";
-const UPDATE_FILENAME: &str = "update.zip";
-const REMOVED_FILENAME: &str = "removed";
-const APP_PREFIX: &str = "app";
 
 #[async_std::main]
 async fn main() -> std::io::Result<()> {
@@ -64,11 +66,11 @@ async fn main() -> std::io::Result<()> {
             SubCommand::with_name("package")
                 .about("Package an update zip")
                 .arg(
-                    Arg::with_name("diff")
-                        .long("diff")
-                        .short("d")
+                    Arg::with_name("from")
+                        .long("from")
+                        .short("f")
                         .required(true)
-                        .help("Diff file")
+                        .help("Old ref")
                         .takes_value(true),
                 )
                 .arg(
@@ -78,11 +80,18 @@ async fn main() -> std::io::Result<()> {
                         .takes_value(true),
                 )
                 .arg(
-                    Arg::with_name("prefix")
-                        .long("prefix")
-                        .short("p")
+                    Arg::with_name("content")
+                        .long("content")
+                        .short("c")
                         .required(false)
-                        .help("Output prefix")
+                        .help("Package full content"),
+                )
+                .arg(
+                    Arg::with_name("ref")
+                        .long("ref")
+                        .short("r")
+                        .required(false)
+                        .help("Current ref")
                         .takes_value(true),
                 )
                 .arg(
@@ -116,72 +125,30 @@ async fn main() -> std::io::Result<()> {
         let mut out_file = File::create(out).await?;
         let old = PathBuf::from(old);
         let new = PathBuf::from(new);
-        let (removed, added, modified) = diff::diff(&old, &new).await?;
-        for filename in removed {
-            out_file
-                .write_all(format!("- {}\n", filename).as_bytes())
-                .await?;
-        }
-        for filename in added {
-            out_file
-                .write_all(format!("+ {}\n", filename).as_bytes())
-                .await?;
-        }
-        for filename in modified {
-            out_file
-                .write_all(format!("~ {}\n", filename).as_bytes())
-                .await?;
-        }
+        let diff = diff::diff_hash_files(&old, &new).await?;
+        diff.write(&mut out_file).await?;
     }
     if let Some(matches) = matches.subcommand_matches("package") {
-        let diff = matches.value_of("diff").unwrap();
         let root = matches.value_of("root").unwrap();
         let out = matches.value_of("out").unwrap();
-        let prefix = matches.value_of("prefix");
+        let current_ref = matches.value_of("ref").unwrap();
+        let content = matches.is_present("content");
         let root = PathBuf::from(root);
-        let diff = PathBuf::from(diff);
-        let diff = read_to_string(diff).await?;
-        let mut update = vec![];
-        let mut remove = vec![];
-        for line in diff.split('\n') {
-            if let Some(file) = line.strip_prefix("+ ") {
-                update.push(file.to_string())
-            }
-            if let Some(file) = line.strip_prefix("~ ") {
-                update.push(file.to_string())
-            }
-            if let Some(file) = line.strip_prefix("- ") {
-                remove.push(file.to_string())
-            }
+        let out = PathBuf::from(out);
+
+        let old_ref = matches.value_of("from").unwrap();
+        let old_hashes_raw =
+            read_to_string(&PathBuf::from(format!("{}-checksums", old_ref))).await?;
+        let update_prefix = format!("{}-{}", current_ref, old_ref);
+        let mut new_hashes = vec![];
+        hash::hash_all(&root, &mut new_hashes, &root).await?;
+        package_hashes(&new_hashes, &out, current_ref).await?;
+        let diff = diff(&parse_hashes(&old_hashes_raw), new_hashes.as_slice())?;
+
+        package_update(&root, &diff, &out, &update_prefix).await?;
+        if content {
+            package_content(&root, &out, current_ref).await?;
         }
-        let update_out = build_path(out, UPDATE_FILENAME, &prefix, false);
-        package::zip_files(&update, &root, &update_out, false).await?;
-        let update_out = build_path(out, UPDATE_FILENAME, &prefix, true);
-        package::zip_files(&update, &root, &update_out, true).await?;
-
-        let removed_out = build_path(out, REMOVED_FILENAME, &prefix, false);
-        write(removed_out, remove.join("\n").as_bytes()).await?;
-
-        let content_out = build_path(out, CONTENT_FILENAME, &prefix, false);
-        package::zip_dir(&root, &content_out, true).await?;
-        let content_out = build_path(out, CONTENT_FILENAME, &prefix, true);
-        package::zip_dir(&root, &content_out, true).await?;
     }
     Ok(())
-}
-
-fn build_path(base: &str, file_name: &str, prefix: &Option<&str>, app: bool) -> PathBuf {
-    let mut full_name = String::new();
-    if let Some(prefix) = prefix {
-        full_name.push_str(prefix);
-        full_name.push('-');
-    }
-    if app {
-        full_name.push_str(APP_PREFIX);
-        full_name.push('-');
-    }
-    full_name.push_str(file_name);
-    let mut out = PathBuf::from(base);
-    out.push(full_name);
-    out
 }
