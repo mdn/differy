@@ -1,10 +1,10 @@
 use async_std::fs::{read, read_to_string};
 use async_std::path::Path;
-use std::io::Write;
+use std::io::{Read, Write};
 use walkdir::WalkDir;
 use zip::result::ZipResult;
 use zip::write::FileOptions;
-use zip::{CompressionMethod, ZipWriter};
+use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
 const APP_REPLACEMENTS: &[(&str, &str)] = &[(
     "https://interactive-examples.mdn.mozilla.net",
@@ -35,11 +35,7 @@ pub fn replace(input: String, replace: &[(&str, &str)]) -> String {
     result
 }
 
-pub(crate) async fn zip_content<T: AsRef<str>>(
-    file_name: &str,
-    content: &[u8],
-    out_file: &Path,
-) -> ZipResult<()> {
+pub(crate) fn zip_content(file_name: &str, content: &[u8], out_file: &Path) -> ZipResult<()> {
     let out_path = Path::new(out_file);
     let file = std::fs::File::create(&out_path)?;
 
@@ -50,6 +46,38 @@ pub(crate) async fn zip_content<T: AsRef<str>>(
 
     zip.start_file(file_name, options)?;
     zip.write_all(content)?;
+    zip.finish()?;
+    Ok(())
+}
+
+pub(crate) fn unzip_content(zip_file: &Path, file_name: &str) -> ZipResult<String> {
+    let zipfile = std::fs::File::open(zip_file)?;
+    let mut archive = ZipArchive::new(zipfile).unwrap();
+    let mut file = archive.by_name(file_name)?;
+
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    Ok(contents)
+}
+
+pub(crate) fn zip_append_buf<T: AsRef<str>, B: AsRef<[u8]>>(
+    zip_file_path: &Path,
+    files: &[(T, B)],
+) -> ZipResult<()> {
+    let file = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(zip_file_path)?;
+
+    let mut zip = ZipWriter::new_append(file)?;
+    let options = FileOptions::default()
+        .compression_method(CompressionMethod::DEFLATE)
+        .unix_permissions(0o644);
+
+    for (file_name, buf) in files {
+        zip.start_file(file_name.as_ref(), options)?;
+        zip.write_all(buf.as_ref())?;
+    }
     zip.finish()?;
     Ok(())
 }

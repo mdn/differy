@@ -1,18 +1,20 @@
-use async_std::fs::{read_to_string, File};
+use async_std::fs::File;
 use async_std::path::PathBuf;
 use async_std::prelude::*;
+use chrono::Utc;
 use clap::{crate_version, App, Arg, SubCommand};
 
+use crate::compress::unzip_content;
 use crate::diff::{diff, parse_hashes};
 use crate::package::package_hashes;
-use crate::{
-    package::{package_content, package_update},
-};
+use crate::package::{package_content, package_update};
+use crate::update::Update;
 
 mod compress;
 mod diff;
 mod hash;
 mod package;
+mod update;
 
 #[async_std::main]
 async fn main() -> std::io::Result<()> {
@@ -66,25 +68,24 @@ async fn main() -> std::io::Result<()> {
             SubCommand::with_name("package")
                 .about("Package an update zip")
                 .arg(
-                    Arg::with_name("from")
-                        .long("from")
-                        .short("f")
-                        .required(true)
-                        .help("Old ref")
-                        .takes_value(true),
-                )
-                .arg(
                     Arg::with_name("root")
                         .required(true)
                         .help("Build root")
                         .takes_value(true),
                 )
                 .arg(
-                    Arg::with_name("content")
-                        .long("content")
-                        .short("c")
-                        .required(false)
-                        .help("Package full content"),
+                    Arg::with_name("from")
+                        .long("from")
+                        .short("f")
+                        .help("Old update.json")
+                        .takes_value(true),
+                )
+                .arg(
+                    Arg::with_name("num_updates")
+                        .long("num")
+                        .short("n")
+                        .help("how many version to support")
+                        .takes_value(true),
                 )
                 .arg(
                     Arg::with_name("ref")
@@ -98,7 +99,6 @@ async fn main() -> std::io::Result<()> {
                     Arg::with_name("out")
                         .long("out")
                         .short("o")
-                        .required(true)
                         .help("Output folder")
                         .takes_value(true),
                 ),
@@ -130,25 +130,46 @@ async fn main() -> std::io::Result<()> {
     }
     if let Some(matches) = matches.subcommand_matches("package") {
         let root = matches.value_of("root").unwrap();
-        let out = matches.value_of("out").unwrap();
+        let out = matches.value_of("out").unwrap_or(".");
         let current_ref = matches.value_of("ref").unwrap();
-        let content = matches.is_present("content");
         let root = PathBuf::from(root);
         let out = PathBuf::from(out);
+        let num_versions = matches
+            .value_of("num_version")
+            .and_then(|s| s.parse::<usize>().ok())
+            .unwrap_or(7);
 
-        let old_ref = matches.value_of("from").unwrap();
-        let old_hashes_raw =
-            read_to_string(&PathBuf::from(format!("{}-checksums", old_ref))).await?;
-        let update_prefix = format!("{}-{}", current_ref, old_ref);
-        let mut new_hashes = vec![];
-        hash::hash_all(&root, &mut new_hashes, &root).await?;
-        package_hashes(&new_hashes, &out, current_ref).await?;
-        let diff = diff(&parse_hashes(&old_hashes_raw), new_hashes.as_slice())?;
+        let from = matches.value_of("from").unwrap_or("update.json");
+        let update_json = std::path::PathBuf::from(from);
+        let Update {
+            mut updates,
+            latest,
+            ..
+        } = Update::from_file(&update_json)?;
+        updates.push(latest);
+        let updates: Vec<String> = updates.into_iter().rev().take(num_versions).collect();
+        for version in &updates {
+            let checksum_file = format!("{}-checksums", &version);
+            let checksum_zip_file = PathBuf::from(&checksum_file).with_extension("zip");
+            println!("packaging update {} → {}", current_ref, version);
+            let old_hashes_raw = unzip_content(&checksum_zip_file, &checksum_file)?;
+            let update_prefix = format!("{}-{}", current_ref, &version);
+            let mut new_hashes = vec![];
+            hash::hash_all(&root, &mut new_hashes, &root).await?;
+            package_hashes(&new_hashes, &out, current_ref).await?;
+            let diff = diff(&parse_hashes(&old_hashes_raw), new_hashes.as_slice())?;
 
-        package_update(&root, &diff, &out, &update_prefix).await?;
-        if content {
-            package_content(&root, &out, current_ref).await?;
+            package_update(&root, &diff, &out, &update_prefix).await?;
         }
+        println!("build content for {}", current_ref);
+        package_content(&root, &out, current_ref).await?;
+
+        let update = Update {
+            date: Utc::now().naive_utc(),
+            latest: current_ref.into(),
+            updates,
+        };
+        update.save(&update_json)?;
     }
     Ok(())
 }

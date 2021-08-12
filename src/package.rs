@@ -3,7 +3,10 @@ use async_std::{
     path::{Path, PathBuf},
 };
 
-use crate::{compress, diff::Diff};
+use crate::{
+    compress::{self, zip_append_buf},
+    diff::Diff,
+};
 
 const CONTENT_FILENAME: &str = "content.zip";
 const UPDATE_FILENAME: &str = "update.zip";
@@ -32,8 +35,17 @@ pub(crate) async fn package_update(
 ) -> std::io::Result<()> {
     let update_out = build_path(out, UPDATE_FILENAME, prefix, false);
     compress::zip_files(diff.update_iter(), root, &update_out, false).await?;
-    let update_out = build_path(out, UPDATE_FILENAME, prefix, true);
-    compress::zip_files(diff.update_iter(), root, &update_out, true).await?;
+    zip_append_buf(
+        &update_out,
+        &[(REMOVED_FILENAME, diff.removed.join("\n").as_bytes())],
+    )?;
+
+    let update_app_out = build_path(out, UPDATE_FILENAME, prefix, true);
+    compress::zip_files(diff.update_iter(), root, &update_app_out, true).await?;
+    zip_append_buf(
+        &update_app_out,
+        &[(REMOVED_FILENAME, diff.removed.join("\n").as_bytes())],
+    )?;
 
     let removed_out = build_path(out, REMOVED_FILENAME, prefix, false);
     write(removed_out, diff.removed.join("\n").as_bytes()).await?;
@@ -62,6 +74,6 @@ pub(crate) async fn package_hashes<T: AsRef<str>>(
     let mut out_file_name = out.to_path_buf();
     out_file_name.push(&file_name);
     out_file_name.set_extension("zip");
-    compress::zip_content::<&str>(file_name.to_str().unwrap(), &buf, &out_file_name).await?;
+    compress::zip_content(file_name.to_str().unwrap(), &buf, &out_file_name)?;
     Ok(())
 }
