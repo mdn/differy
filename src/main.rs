@@ -161,7 +161,7 @@ async fn main() -> std::io::Result<()> {
 
             package_update(&root, &diff, &out, &update_prefix).await?;
         }
-        println!("build content for {}", current_rev);
+        println!("building content for {}", current_rev);
         package_content(&root, &out, current_rev).await?;
 
         let update = Update {
