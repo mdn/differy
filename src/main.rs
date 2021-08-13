@@ -88,11 +88,11 @@ async fn main() -> std::io::Result<()> {
                         .takes_value(true),
                 )
                 .arg(
-                    Arg::with_name("ref")
-                        .long("ref")
+                    Arg::with_name("rev")
+                        .long("rev")
                         .short("r")
                         .required(false)
-                        .help("Current ref")
+                        .help("Current rev")
                         .takes_value(true),
                 )
                 .arg(
@@ -131,7 +131,7 @@ async fn main() -> std::io::Result<()> {
     if let Some(matches) = matches.subcommand_matches("package") {
         let root = matches.value_of("root").unwrap();
         let out = matches.value_of("out").unwrap_or(".");
-        let current_ref = matches.value_of("ref").unwrap();
+        let current_rev = matches.value_of("rev").unwrap();
         let root = PathBuf::from(root);
         let out = PathBuf::from(out);
         let num_versions = matches
@@ -151,22 +151,22 @@ async fn main() -> std::io::Result<()> {
         for version in &updates {
             let checksum_file = format!("{}-checksums", &version);
             let checksum_zip_file = PathBuf::from(&checksum_file).with_extension("zip");
-            println!("packaging update {} → {}", current_ref, version);
+            println!("packaging update {} → {}", current_rev, version);
             let old_hashes_raw = unzip_content(&checksum_zip_file, &checksum_file)?;
-            let update_prefix = format!("{}-{}", current_ref, &version);
+            let update_prefix = format!("{}-{}", current_rev, &version);
             let mut new_hashes = vec![];
             hash::hash_all(&root, &mut new_hashes, &root).await?;
-            package_hashes(&new_hashes, &out, current_ref).await?;
+            package_hashes(&new_hashes, &out, current_rev).await?;
             let diff = diff(&parse_hashes(&old_hashes_raw), new_hashes.as_slice())?;
 
             package_update(&root, &diff, &out, &update_prefix).await?;
         }
-        println!("build content for {}", current_ref);
-        package_content(&root, &out, current_ref).await?;
+        println!("build content for {}", current_rev);
+        package_content(&root, &out, current_rev).await?;
 
         let update = Update {
             date: Utc::now().naive_utc(),
-            latest: current_ref.into(),
+            latest: current_rev.into(),
             updates,
         };
         update.save(&update_json)?;
