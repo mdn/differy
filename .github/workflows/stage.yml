@@ -15,5 +15,6 @@ jobs:
       - name: Do it!
         env: 
           UPDATE_URL: https://updates.developer.allizom.org
+          BUCKET: updates-stage-developer-allizom-6d533edfe2c2c683
         run: |
           ${{ github.workspace }}/scripts/run.sh
