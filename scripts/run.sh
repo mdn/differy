@@ -62,4 +62,5 @@ differy package $BUILD_OUT_ROOT --rev $REV
 
 cp update.json ${REV}-update.json
 
-aws s3 cp . s3://XXX --recursive --exclude "*" --include "${REV}-*" --include "update.json"
+aws s3 cp . s3://${BUCKET}/packages/ --recursive --exclude "*" --include "${REV}-*.{json,zip}"
+aws s3 cp update.json s3://${BUCKET}/

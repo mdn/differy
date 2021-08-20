@@ -3,10 +3,10 @@ use std::{fs::File, io::BufReader, path::Path};
 use chrono::NaiveDateTime;
 use serde_derive::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, Default)]
 pub(crate) struct Update {
-    pub date: NaiveDateTime,
-    pub latest: String,
+    pub date: Option<NaiveDateTime>,
+    pub latest: Option<String>,
     pub updates: Vec<String>,
 }
 

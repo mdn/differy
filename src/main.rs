@@ -135,7 +135,7 @@ async fn main() -> std::io::Result<()> {
         let root = PathBuf::from(root);
         let out = PathBuf::from(out);
         let num_versions = matches
-            .value_of("num_version")
+            .value_of("num_updates")
             .and_then(|s| s.parse::<usize>().ok())
             .unwrap_or(7);
 
@@ -146,7 +146,9 @@ async fn main() -> std::io::Result<()> {
             latest,
             ..
         } = Update::from_file(&update_json)?;
-        updates.push(latest);
+        if let Some(latest) = latest {
+            updates.push(latest);
+        }
         let updates: Vec<String> = updates.into_iter().rev().take(num_versions).collect();
         for version in &updates {
             let checksum_file = format!("{}-checksums", &version);
@@ -165,8 +167,8 @@ async fn main() -> std::io::Result<()> {
         package_content(&root, &out, current_rev).await?;
 
         let update = Update {
-            date: Utc::now().naive_utc(),
-            latest: current_rev.into(),
+            date: Some(Utc::now().naive_utc()),
+            latest: Some(current_rev.into()),
             updates,
         };
         update.save(&update_json)?;

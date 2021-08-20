@@ -55,9 +55,9 @@ pub(crate) async fn package_update(
 
 pub(crate) async fn package_content(root: &Path, out: &Path, prefix: &str) -> std::io::Result<()> {
     let content_out = build_path(out, CONTENT_FILENAME, prefix, false);
-    compress::zip_dir(root, &content_out, true).await?;
-    let content_out = build_path(out, CONTENT_FILENAME, prefix, true);
-    compress::zip_dir(root, &content_out, true).await?;
+    compress::zip_dir(root, &content_out, false).await?;
+    let content_app_out = build_path(out, CONTENT_FILENAME, prefix, true);
+    compress::zip_dir(root, &content_app_out, true).await?;
     Ok(())
 }
 
