@@ -5,18 +5,16 @@ set -o nounset
 set -o pipefail
 set -x
 
-export UPDATE_URL=https://pwa.fiji-flo.de
-
 mkdir -p workbench
 export WORKBENCH=$(realpath workbench)
 if [ ! -d $WORKBENCH/.bin ]; then mkdir $WORKBENCH/.bin; fi
 export PATH=$WORKBENCH/.bin:$PATH
 
-DIFFERY_LATEST=$(curl -sL https://api.github.com/repos/fiji-flo/differy/releases/latest | jq -r ".tag_name")
+DIFFERY_LATEST=$(curl -sL https://api.github.com/repos/mdn/differy/releases/latest | jq -r ".tag_name")
 DIFFERY_CURRENT=$(differy -V | sed 's/differy /v/')
 if [ $DIFFERY_LATEST != $DIFFERY_CURRENT ]
 then
-	curl -L https://github.com/fiji-flo/differy/releases/latest/download/differy-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C $WORKBENCH/.bin/
+	curl -L https://github.com/mdn/differy/releases/latest/download/differy-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C $WORKBENCH/.bin/
 fi
 
 cd $WORKBENCH
