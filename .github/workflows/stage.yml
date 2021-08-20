@@ -1,0 +1,19 @@
+name: Package for stage
+on: workflow_dispatch
+jobs:
+  everything:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Configure AWS credentials for stage
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.UPDATES_STAGE_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.UPDATES_STAGE_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Do it!
+        env: 
+          UPDATE_URL: https://updates.developer.allizom.org
+        run: |
+          ${{ github.workspace }}/scripts/run.sh
