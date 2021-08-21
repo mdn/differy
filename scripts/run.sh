@@ -63,6 +63,7 @@ done
 curl -O $UPDATE_URL/packages/$LATEST-checksums.zip
 
 differy package $BUILD_OUT_ROOT --rev $REV
+cp update.json ${REV}-update.json
 
 aws s3 cp . s3://${BUCKET}/packages/ --recursive --exclude "*" --include "${REV}-*.zip"
 aws s3 cp ${REV}-update.json s3://${BUCKET}/packages/
