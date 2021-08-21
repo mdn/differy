@@ -147,7 +147,9 @@ async fn main() -> std::io::Result<()> {
             ..
         } = Update::from_file(&update_json)?;
         if let Some(latest) = latest {
-            updates.push(latest);
+            if current_rev != latest {
+                updates.push(latest);
+            }
         }
         let updates: Vec<String> = updates.into_iter().rev().take(num_versions).collect();
         for version in &updates {

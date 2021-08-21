@@ -28,42 +28,41 @@ git clone https://github.com/mdn/yari.git
 git clone https://github.com/mdn/content.git
 git clone https://github.com/mdn/interactive-examples.git
 
+cd $WORKBENCH/content
+export REV=$(git rev-parse --short HEAD)
+
+cd $WORKBENCH
+curl -O $UPDATE_URL/update.json
+export LATEST=$(jq -r -c '.latest' update.json)
+if [ $LATEST == $REV]
+then
+	echo "Bundle already exsits for $REV"
+	exit 0
+fi
+
+cd $WORKBENCH
 export CONTENT_ROOT=$WORKBENCH/content
 export BUILD_OUT_ROOT=$WORKBENCH/build
-
 mkdir -p $BUILD_OUT_ROOT
 
 cd $WORKBENCH/yari
-
 yarn
 yarn prepare-build
 yarn build -n
 
-
 cd $WORKBENCH/interactive-examples
-
 yarn
 yarn build
-
 mv docs $BUILD_OUT_ROOT/examples
 
-cd $WORKBENCH/content
-
-export REV=$(git rev-parse --short HEAD)
-
 cd $WORKBENCH
-
-curl -O $UPDATE_URL/update.json
-
 for OLD_REV in $(jq -r -c '.updates[]' update.json)
 do
 	curl -O $UPDATE_URL/packages/$OLD_REV-checksums.zip
 done
-curl -O $UPDATE_URL/packages/$(jq -r -c '.latest' update.json)-checksums.zip
+curl -O $UPDATE_URL/packages/$LATEST-checksums.zip
 
 differy package $BUILD_OUT_ROOT --rev $REV
-
-cp update.json ${REV}-update.json
 
 aws s3 cp . s3://${BUCKET}/packages/ --recursive --exclude "*" --include "${REV}-*.zip"
 aws s3 cp ${REV}-update.json s3://${BUCKET}/packages/
