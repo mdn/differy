@@ -1,5 +1,14 @@
 name: Package for stage
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: "Notes"
+        required: false
+        default: ""
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron: "0 */24 * * *"
 jobs:
   everything:
     runs-on: ubuntu-latest
