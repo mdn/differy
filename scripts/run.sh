@@ -10,17 +10,7 @@ export WORKBENCH=$(realpath workbench)
 if [ ! -d $WORKBENCH/.bin ]; then mkdir $WORKBENCH/.bin; fi
 export PATH=$WORKBENCH/.bin:$PATH
 
-DIFFERY_LATEST=$(curl -sL https://api.github.com/repos/mdn/differy/releases/latest | jq -r ".tag_name")
-if ! type "differy" > /dev/null; then
-	DIFFERY_CURRENT=0
-else
-	DIFFERY_CURRENT=$(differy -V | sed 's/differy /v/')
-fi
-
-if [ $DIFFERY_LATEST != $DIFFERY_CURRENT ]
-then
-	curl -L https://github.com/mdn/differy/releases/latest/download/differy-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C $WORKBENCH/.bin/
-fi
+curl -L https://github.com/mdn/differy/releases/latest/download/differy-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C $WORKBENCH/.bin/
 
 cd $WORKBENCH
 

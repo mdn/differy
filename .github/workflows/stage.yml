@@ -13,13 +13,6 @@ jobs:
   everything:
     runs-on: ubuntu-latest
     steps:
-      - name: Cache differy
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.bin
-          key: ${{ runner.os }}-differy
-
       - name: Check out repository code
         uses: actions/checkout@v2
 
