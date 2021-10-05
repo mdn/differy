@@ -92,9 +92,7 @@ pub(crate) async fn zip_files<T: AsRef<str>>(
     let file = std::fs::File::create(&out_path)?;
 
     let mut zip = ZipWriter::new(file);
-    let options = FileOptions::default()
-        .compression_method(CompressionMethod::DEFLATE)
-        .unix_permissions(0o644);
+    let options = FileOptions::default();
 
     for path in files {
         let full_path = src_dir.join(&path.as_ref());
@@ -112,6 +110,8 @@ pub(crate) async fn zip_files<T: AsRef<str>>(
                 let buf = read(full_path).await?;
                 zip.write_all(&buf)?;
             }
+        } else {
+            zip.add_directory(path.as_ref(), options)?;
         }
     }
     zip.finish()?;
@@ -127,9 +127,7 @@ pub(crate) async fn zip_dir(src_dir: &Path, out_file: &Path, app: bool) -> ZipRe
     let file = std::fs::File::create(&path)?;
 
     let mut zip = ZipWriter::new(file);
-    let options = FileOptions::default()
-        .compression_method(CompressionMethod::DEFLATE)
-        .unix_permissions(0o644);
+    let options = FileOptions::default();
 
     for entry in WalkDir::new(src_dir).into_iter().filter_map(|e| e.ok()) {
         let path = entry.path();
