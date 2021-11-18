@@ -8,7 +8,10 @@ use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
 const APP_REPLACEMENTS: &[(&str, &str)] = &[(
     "https://interactive-examples.mdn.mozilla.net",
-    "mdn-app:///examples",
+    "mdn-app://examples/examples",
+), (
+    "https://yari-demos.prod.mdn.mozit.cloud",
+    "mdn-app://yari-demos"
 )];
 
 pub fn replace(input: String, replace: &[(&str, &str)]) -> String {

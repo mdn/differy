@@ -18,6 +18,18 @@ git clone https://github.com/mdn/yari.git
 git clone https://github.com/mdn/content.git
 git clone https://github.com/mdn/interactive-examples.git
 
+mkdir $WORKBENCH/ghsamples
+cd $WORKBENCH/ghsamples
+
+git clone https://github.com/mdn/web-tech-games.git
+git clone https://github.com/mdn/learning-area.git
+git clone https://github.com/mdn/css-examples.git
+git clone https://github.com/mdn/imsc.git
+git clone https://github.com/mdn/canvas-raycaster.git
+git clone https://github.com/mdn/dom-examples.git
+git clone https://github.com/mdn/webgl-examples.git
+git clone https://github.com/mdn/html-examples.git
+
 cd $WORKBENCH/content
 export REV=$(git rev-parse --short HEAD)
 
@@ -33,6 +45,7 @@ fi
 cd $WORKBENCH
 export CONTENT_ROOT=$WORKBENCH/content
 export BUILD_OUT_ROOT=$WORKBENCH/build
+export BUILD_LIVE_SAMPLES_BASE_URL: https://yari-demos.prod.mdn.mozit.cloud
 mkdir -p $BUILD_OUT_ROOT
 
 cd $WORKBENCH/yari
