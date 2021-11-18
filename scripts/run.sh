@@ -45,7 +45,7 @@ fi
 cd $WORKBENCH
 export CONTENT_ROOT=$WORKBENCH/content
 export BUILD_OUT_ROOT=$WORKBENCH/build
-export BUILD_LIVE_SAMPLES_BASE_URL: https://yari-demos.prod.mdn.mozit.cloud
+export BUILD_LIVE_SAMPLES_BASE_URL="https://yari-demos.prod.mdn.mozit.cloud"
 mkdir -p $BUILD_OUT_ROOT
 
 cd $WORKBENCH/yari
