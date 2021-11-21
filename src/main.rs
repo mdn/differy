@@ -152,11 +152,18 @@ async fn main() -> std::io::Result<()> {
             }
         }
         let updates: Vec<String> = updates.into_iter().rev().take(num_versions).collect();
-        for version in &updates {
+        let mut updated = vec![];
+        for version in updates {
             let checksum_file = format!("{}-checksums", &version);
             let checksum_zip_file = PathBuf::from(&checksum_file).with_extension("zip");
             println!("packaging update {} → {}", current_rev, version);
-            let old_hashes_raw = unzip_content(&checksum_zip_file, &checksum_file)?;
+            let old_hashes_raw = match unzip_content(&checksum_zip_file, &checksum_file) {
+                Ok(r) => r,
+                Err(e) => {
+                    println!("Error unpacking: {:?}.zip: {}", checksum_file, e);
+                    continue;
+                }
+            };
             let update_prefix = format!("{}-{}", current_rev, &version);
             let mut new_hashes = vec![];
             hash::hash_all(&root, &mut new_hashes, &root).await?;
@@ -164,6 +171,7 @@ async fn main() -> std::io::Result<()> {
             let diff = diff(&parse_hashes(&old_hashes_raw), new_hashes.as_slice())?;
 
             package_update(&root, &diff, &out, &update_prefix).await?;
+            updated.push(version);
         }
         println!("building content for {}", current_rev);
         package_content(&root, &out, current_rev).await?;
@@ -171,7 +179,7 @@ async fn main() -> std::io::Result<()> {
         let update = Update {
             date: Some(Utc::now().naive_utc()),
             latest: Some(current_rev.into()),
-            updates,
+            updates: updated,
         };
         update.save(&update_json)?;
     }
