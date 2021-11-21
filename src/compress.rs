@@ -52,7 +52,8 @@ pub(crate) fn zip_content(file_name: &str, content: &[u8], out_file: &Path) -> Z
 
     zip.start_file(file_name, options)?;
     zip.write_all(content)?;
-    zip.finish()?;
+    let mut w = zip.finish()?;
+    w.flush()?;
     Ok(())
 }
 
@@ -84,7 +85,8 @@ pub(crate) fn zip_append_buf<T: AsRef<str>, B: AsRef<[u8]>>(
         zip.start_file(file_name.as_ref(), options)?;
         zip.write_all(buf.as_ref())?;
     }
-    zip.finish()?;
+    let mut w = zip.finish()?;
+    w.flush()?;
     Ok(())
 }
 
@@ -120,7 +122,8 @@ pub(crate) async fn zip_files<T: AsRef<str>>(
             zip.add_directory(path.as_ref(), options)?;
         }
     }
-    zip.finish()?;
+    let mut w = zip.finish()?;
+    w.flush()?;
     Ok(())
 }
 
@@ -155,6 +158,7 @@ pub(crate) async fn zip_dir(src_dir: &Path, out_file: &Path, app: bool) -> ZipRe
             zip.add_directory(name, options)?;
         }
     }
-    zip.finish()?;
+    let mut w = zip.finish()?;
+    w.flush()?;
     Ok(())
 }

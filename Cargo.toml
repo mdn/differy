@@ -1,9 +1,9 @@
 [package]
 name = "differy"
-version = "0.0.7"
+version = "0.0.8"
 authors = ["Florian Dieminger <me@fiji-flo.de>"]
 description = "diff directory trees via sha256sum"
-edition = "2018"
+edition = "2021"
 license = "MIT"
 repository = "https://github.com/fiji-flo/differy"
 documentation = "https://docs.rs/crate/differy"
