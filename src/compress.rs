@@ -59,7 +59,7 @@ pub(crate) fn zip_content(file_name: &str, content: &[u8], out_file: &Path) -> Z
 
 pub(crate) fn unzip_content(zip_file: &Path, file_name: &str) -> ZipResult<String> {
     let zipfile = std::fs::File::open(zip_file)?;
-    let mut archive = ZipArchive::new(zipfile).unwrap();
+    let mut archive = ZipArchive::new(zipfile)?;
     let mut file = archive.by_name(file_name)?;
 
     let mut contents = String::new();

@@ -1,6 +1,6 @@
 [package]
 name = "differy"
-version = "0.0.8"
+version = "0.0.10"
 authors = ["Florian Dieminger <me@fiji-flo.de>"]
 description = "diff directory trees via sha256sum"
 edition = "2021"
