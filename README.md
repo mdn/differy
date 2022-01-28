@@ -34,11 +34,16 @@ The `$BUILD_OUT_ROOT` directory should contain the artifacts of:
 
 - `xxxxxxxxx-content.zip`: All of `$BUILD_OUT_ROOT`
 - `xxxxxxxxx-app-content.zip`: All of `$BUILD_OUT_ROOT`
+- `xxxxxxxxx-content.json`: a json file containing the names of all
+  content files.
   with modified links to _interactive-examples_
 - `xxxxxxxxx-yyyyyyyyy-update.zip`: the changed files between `xxxxxxxxx` and
   `yyyyyyyyy` plus a file called `removed` containing list of all files that
   have been removed
-- `xxxxxxxxx-yyyyyyyyy-update.zip`: the same with modified links
+- `xxxxxxxxx-yyyyyyyyy-app-update.zip`: the same with modified links
+- `xxxxxxxxx-yyyyyyyyy-diff.json`: a json file containing the names of changed
+  files between `xxxxxxxxx` and `yyyyyyyyy`
+  have been removed
 - `update.json` the modified input file
 
 ### Example
@@ -79,12 +84,16 @@ This will generate:
 > ls -1 {c4123a3f1*,update.json}
 
 c4123a3f1-3bfe5e8ee-app-update.zip
+c4123a3f1-3bfe5e8ee-diff.json
 c4123a3f1-3bfe5e8ee-update.zip
 c4123a3f1-723965504-app-update.zip
+c4123a3f1-723965504-diff.json
 c4123a3f1-723965504-update.zip
 c4123a3f1-app-content.zip
 c4123a3f1-checksums.zip
 c4123a3f1-content.zip
+c4123a3f1-content.json
+update.json
 ```
 
 ## Automating and Uploading Artifacts

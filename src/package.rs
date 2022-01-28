@@ -11,6 +11,8 @@ use crate::{
 const CONTENT_FILENAME: &str = "content.zip";
 const UPDATE_FILENAME: &str = "update.zip";
 const REMOVED_FILENAME: &str = "removed";
+const DIFF_LIST_FILENAME: &str = "diff.json";
+const CONTENT_LIST_FILENAME: &str = "content.json";
 const APP_PREFIX: &str = "app";
 
 fn build_path<I: Into<PathBuf>>(base: I, file_name: &str, prefix: &str, app: bool) -> PathBuf {
@@ -50,14 +52,29 @@ pub(crate) async fn package_update(
     let removed_out = build_path(out, REMOVED_FILENAME, prefix, false);
     write(removed_out, diff.removed.join("\n").as_bytes()).await?;
 
+    let diff_list_out = build_path(out, DIFF_LIST_FILENAME, prefix, false);
+    write(diff_list_out, serde_json::to_string(diff)?).await?;
+
     Ok(())
 }
 
-pub(crate) async fn package_content(root: &Path, out: &Path, prefix: &str) -> std::io::Result<()> {
+pub(crate) async fn package_content<T: AsRef<str>>(
+    root: &Path,
+    out: &Path,
+    prefix: &str,
+    hashes: &[(T, T)],
+) -> std::io::Result<()> {
     let content_out = build_path(out, CONTENT_FILENAME, prefix, false);
     compress::zip_dir(root, &content_out, false).await?;
     let content_app_out = build_path(out, CONTENT_FILENAME, prefix, true);
     compress::zip_dir(root, &content_app_out, true).await?;
+
+    let content_list_out = build_path(out, CONTENT_LIST_FILENAME, prefix, false);
+    let list = hashes
+        .iter()
+        .map(|(_, f)| f.as_ref())
+        .collect::<Vec<&str>>();
+    write(content_list_out, serde_json::to_string(&list)?).await?;
     Ok(())
 }
 

@@ -21,14 +21,14 @@ git clone https://github.com/mdn/interactive-examples.git
 mkdir $WORKBENCH/ghsamples
 cd $WORKBENCH/ghsamples
 
-git clone https://github.com/mdn/web-tech-games.git
-git clone https://github.com/mdn/learning-area.git
-git clone https://github.com/mdn/css-examples.git
-git clone https://github.com/mdn/imsc.git
-git clone https://github.com/mdn/canvas-raycaster.git
-git clone https://github.com/mdn/dom-examples.git
-git clone https://github.com/mdn/webgl-examples.git
-git clone https://github.com/mdn/html-examples.git
+# git clone https://github.com/mdn/web-tech-games.git
+# git clone https://github.com/mdn/learning-area.git
+# git clone https://github.com/mdn/css-examples.git
+# git clone https://github.com/mdn/imsc.git
+# git clone https://github.com/mdn/canvas-raycaster.git
+# git clone https://github.com/mdn/dom-examples.git
+# git clone https://github.com/mdn/webgl-examples.git
+# git clone https://github.com/mdn/html-examples.git
 
 cd $WORKBENCH/content
 export REV=$(git rev-parse --short HEAD)
@@ -67,7 +67,11 @@ curl -O $UPDATE_URL/packages/$LATEST-checksums.zip
 
 differy package $BUILD_OUT_ROOT --rev $REV
 cp update.json ${REV}-update.json
+cp ${REV}-content.json content.json
 
 aws s3 cp . s3://${BUCKET}/packages/ --recursive --exclude "*" --include "${REV}-*.zip"
 aws s3 cp ${REV}-update.json s3://${BUCKET}/packages/
+aws s3 cp ${REV}-diff.json s3://${BUCKET}/packages/
+aws s3 cp ${REV}-content.json s3://${BUCKET}/packages/
 aws s3 cp update.json s3://${BUCKET}/
+aws s3 cp content.json s3://${BUCKET}/

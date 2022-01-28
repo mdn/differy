@@ -5,7 +5,9 @@ use async_std::{
     io::prelude::WriteExt,
     path::Path,
 };
+use serde_derive::Serialize;
 
+#[derive(Serialize)]
 pub(crate) struct Diff {
     pub added: Vec<String>,
     pub removed: Vec<String>,

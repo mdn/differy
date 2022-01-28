@@ -152,6 +152,9 @@ async fn main() -> std::io::Result<()> {
             }
         }
         let updates: Vec<String> = updates.into_iter().rev().take(num_versions).collect();
+        let mut new_hashes = vec![];
+        hash::hash_all(&root, &mut new_hashes, &root).await?;
+        package_hashes(&new_hashes, &out, current_rev).await?;
         let mut updated = vec![];
         for version in updates {
             let checksum_file = format!("{}-checksums", &version);
@@ -165,16 +168,13 @@ async fn main() -> std::io::Result<()> {
                 }
             };
             let update_prefix = format!("{}-{}", current_rev, &version);
-            let mut new_hashes = vec![];
-            hash::hash_all(&root, &mut new_hashes, &root).await?;
-            package_hashes(&new_hashes, &out, current_rev).await?;
             let diff = diff(&parse_hashes(&old_hashes_raw), new_hashes.as_slice())?;
 
             package_update(&root, &diff, &out, &update_prefix).await?;
             updated.push(version);
         }
         println!("building content for {}", current_rev);
-        package_content(&root, &out, current_rev).await?;
+        package_content(&root, &out, current_rev, &new_hashes).await?;
 
         let update = Update {
             date: Some(Utc::now().naive_utc()),
