@@ -2,7 +2,7 @@ use async_std::fs::File;
 use async_std::path::PathBuf;
 use async_std::prelude::*;
 use chrono::Utc;
-use clap::{crate_version, App, Arg, SubCommand};
+use clap::{crate_version, App, Arg, SubCommand, Command};
 
 use crate::compress::unzip_content;
 use crate::diff::{diff, parse_hashes};
@@ -16,89 +16,91 @@ mod hash;
 mod package;
 mod update;
 
+const NUM_VERSION_DEFAULT: usize = 14;
+
 #[async_std::main]
 async fn main() -> std::io::Result<()> {
-    let matches = App::new("differy")
+    let matches =Command::new("differy")
         .version(crate_version!())
         .author("Florian Dieminger <me@fiji-flo.de>")
         .about("Hash and diff all the things")
         .subcommand(
-            SubCommand::with_name("hash")
+            Command::new("hash")
                 .about("Hash all files")
                 .arg(
-                    Arg::with_name("PATH")
+                    Arg::new("PATH")
                         .required(true)
                         .help("Path to scan")
                         .takes_value(true),
                 )
                 .arg(
-                    Arg::with_name("out")
+                    Arg::new("out")
                         .long("out")
-                        .short("o")
+                        .short('o')
                         .required(true)
                         .help("Output file")
                         .takes_value(true),
                 ),
         )
         .subcommand(
-            SubCommand::with_name("diff")
+            Command::new("diff")
                 .about("Diff two hash files")
                 .arg(
-                    Arg::with_name("old")
+                    Arg::new("old")
                         .required(true)
                         .help("Old hash file")
                         .takes_value(true),
                 )
                 .arg(
-                    Arg::with_name("new")
+                    Arg::new("new")
                         .required(true)
                         .help("New hash file")
                         .takes_value(true),
                 )
                 .arg(
-                    Arg::with_name("out")
+                    Arg::new("out")
                         .long("out")
-                        .short("o")
+                        .short('o')
                         .required(true)
                         .help("Output file")
                         .takes_value(true),
                 ),
         )
         .subcommand(
-            SubCommand::with_name("package")
+            Command::new("package")
                 .about("Package an update zip")
                 .arg(
-                    Arg::with_name("root")
+                    Arg::new("root")
                         .required(true)
                         .help("Build root")
                         .takes_value(true),
                 )
                 .arg(
-                    Arg::with_name("from")
+                    Arg::new("from")
                         .long("from")
-                        .short("f")
+                        .short('f')
                         .help("Old update.json")
                         .takes_value(true),
                 )
                 .arg(
-                    Arg::with_name("num_updates")
+                    Arg::new("num_updates")
                         .long("num")
-                        .short("n")
+                        .short('n')
                         .help("how many version to support")
                         .takes_value(true),
                 )
                 .arg(
-                    Arg::with_name("rev")
+                    Arg::new("rev")
                         .long("rev")
-                        .short("r")
+                        .short('r')
                         .required(false)
                         .help("Current rev")
                         .takes_value(true),
                 )
                 .arg(
-                    Arg::with_name("out")
+                    Arg::new("out")
                         .long("out")
-                        .short("o")
+                        .short('o')
                         .help("Output folder")
                         .takes_value(true),
                 ),
@@ -137,26 +139,31 @@ async fn main() -> std::io::Result<()> {
         let num_versions = matches
             .value_of("num_updates")
             .and_then(|s| s.parse::<usize>().ok())
-            .unwrap_or(7);
+            .unwrap_or(NUM_VERSION_DEFAULT);
 
         let from = matches.value_of("from").unwrap_or("update.json");
         let update_json = std::path::PathBuf::from(from);
         let Update {
-            mut updates,
+            updates,
             latest,
             ..
         } = Update::from_file(&update_json)?;
+
+        let mut to_be_updated = Vec::new();
         if let Some(latest) = latest {
             if current_rev != latest {
-                updates.push(latest);
+                to_be_updated.push(latest);
             }
         }
-        let updates: Vec<String> = updates.into_iter().rev().take(num_versions).collect();
+        let take_versions = num_versions - to_be_updated.len();
+        to_be_updated.extend(updates.into_iter().take(take_versions));
+
         let mut new_hashes = vec![];
         hash::hash_all(&root, &mut new_hashes, &root).await?;
         package_hashes(&new_hashes, &out, current_rev).await?;
+
         let mut updated = vec![];
-        for version in updates {
+        for version in to_be_updated {
             let checksum_file = format!("{}-checksums", &version);
             let checksum_zip_file = PathBuf::from(&checksum_file).with_extension("zip");
             println!("packaging update {} → {}", current_rev, version);
