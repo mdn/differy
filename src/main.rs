@@ -2,7 +2,7 @@ use async_std::fs::File;
 use async_std::path::PathBuf;
 use async_std::prelude::*;
 use chrono::Utc;
-use clap::{crate_version, App, Arg, SubCommand, Command};
+use clap::{crate_version, App, Arg, Command, SubCommand};
 
 use crate::compress::unzip_content;
 use crate::diff::{diff, parse_hashes};
@@ -20,7 +20,7 @@ const NUM_VERSION_DEFAULT: usize = 14;
 
 #[async_std::main]
 async fn main() -> std::io::Result<()> {
-    let matches =Command::new("differy")
+    let matches = Command::new("differy")
         .version(crate_version!())
         .author("Florian Dieminger <me@fiji-flo.de>")
         .about("Hash and diff all the things")
@@ -144,9 +144,7 @@ async fn main() -> std::io::Result<()> {
         let from = matches.value_of("from").unwrap_or("update.json");
         let update_json = std::path::PathBuf::from(from);
         let Update {
-            updates,
-            latest,
-            ..
+            updates, latest, ..
         } = Update::from_file(&update_json)?;
 
         let mut to_be_updated = Vec::new();
