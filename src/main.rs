@@ -2,7 +2,7 @@ use async_std::fs::File;
 use async_std::path::PathBuf;
 use async_std::prelude::*;
 use chrono::Utc;
-use clap::{crate_version, App, Arg, Command, SubCommand};
+use clap::{crate_version, Arg, Command};
 
 use crate::compress::unzip_content;
 use crate::diff::{diff, parse_hashes};
