@@ -12,7 +12,7 @@ const APP_REPLACEMENTS: &[(&str, &str)] = &[
         "src=\\\"mdn-app://examples/examples",
     ),
     (
-        "src=\"https://yari-demos.prod.mdn.mozit.cloud",
+        "src=\\\"https://yari-demos.prod.mdn.mozit.cloud",
         "src=\\\"mdn-app://yari-demos",
     ),
 ];
@@ -165,6 +165,8 @@ pub(crate) async fn zip_dir(src_dir: &Path, out_file: &Path, app: bool) -> ZipRe
                 let mut buf = read_to_string(path).await?;
                 if app {
                     buf = replace_all_app(buf);
+                } else {
+                    buf = replace_all_web(buf);
                 }
                 zip.write_all(buf.as_bytes())?;
             } else {
@@ -178,4 +180,19 @@ pub(crate) async fn zip_dir(src_dir: &Path, out_file: &Path, app: bool) -> ZipRe
     let mut w = zip.finish()?;
     w.flush()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::replace_all_web;
+
+    #[test]
+    fn test_replace_web() {
+        let raw = r#"<iframe src=\"https://yari-demos.prod.mdn.mozit.cloud/foo\">"#;
+        let out = replace_all_web(raw.to_string());
+        assert_eq!(r#"<iframe src=\"/foo\">"#, &out);
+        let raw = r#"<iframe src=\"https://interactive-examples.mdn.mozilla.net/foo\">"#;
+        let out = replace_all_web(raw.to_string());
+        assert_eq!(r#"<iframe src=\"/examples/foo\">"#, &out);
+    }
 }
