@@ -22,7 +22,10 @@ const WEB_REPLACEMENTS: &[(&str, &str)] = &[
         "src=\\\"https://interactive-examples.mdn.mozilla.net",
         "src=\\\"/examples",
     ),
-    ("src=\\\"https://yari-demos.prod.mdn.mozit.cloud", "src=\\\""),
+    (
+        "src=\\\"https://yari-demos.prod.mdn.mozit.cloud",
+        "src=\\\"",
+    ),
 ];
 
 pub fn replace(input: String, replace: &[(&str, &str)]) -> String {
