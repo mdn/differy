@@ -8,21 +8,21 @@ use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
 const APP_REPLACEMENTS: &[(&str, &str)] = &[
     (
-        "src=\"https://interactive-examples.mdn.mozilla.net",
-        "src=\"mdn-app://examples/examples",
+        "src=\\\"https://interactive-examples.mdn.mozilla.net",
+        "src=\\\"mdn-app://examples/examples",
     ),
     (
         "src=\"https://yari-demos.prod.mdn.mozit.cloud",
-        "src=\"mdn-app://yari-demos",
+        "src=\\\"mdn-app://yari-demos",
     ),
 ];
 
 const WEB_REPLACEMENTS: &[(&str, &str)] = &[
     (
-        "src=\"https://interactive-examples.mdn.mozilla.net",
-        "src=\"/examples",
+        "src=\\\"https://interactive-examples.mdn.mozilla.net",
+        "src=\\\"/examples",
     ),
-    ("src=\"https://yari-demos.prod.mdn.mozit.cloud", "src=\""),
+    ("src=\\\"https://yari-demos.prod.mdn.mozit.cloud", "src=\\\""),
 ];
 
 pub fn replace(input: String, replace: &[(&str, &str)]) -> String {
