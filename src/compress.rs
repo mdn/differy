@@ -8,13 +8,21 @@ use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
 const APP_REPLACEMENTS: &[(&str, &str)] = &[
     (
-        "https://interactive-examples.mdn.mozilla.net",
-        "mdn-app://examples/examples",
+        "src=\"https://interactive-examples.mdn.mozilla.net",
+        "src=\"mdn-app://examples/examples",
     ),
     (
-        "https://yari-demos.prod.mdn.mozit.cloud",
-        "mdn-app://yari-demos",
+        "src=\"https://yari-demos.prod.mdn.mozit.cloud",
+        "src=\"mdn-app://yari-demos",
     ),
+];
+
+const WEB_REPLACEMENTS: &[(&str, &str)] = &[
+    (
+        "src=\"https://interactive-examples.mdn.mozilla.net",
+        "src=\"/examples",
+    ),
+    ("src=\"https://yari-demos.prod.mdn.mozit.cloud", "src=\""),
 ];
 
 pub fn replace(input: String, replace: &[(&str, &str)]) -> String {
@@ -111,7 +119,9 @@ pub(crate) async fn zip_files<T: AsRef<str>>(
             if path.as_ref().ends_with("index.json") {
                 let mut buf = read_to_string(full_path).await?;
                 if app {
-                    buf = replace_all(buf);
+                    buf = replace_all_app(buf);
+                } else {
+                    buf = replace_all_web(buf);
                 }
                 zip.write_all(buf.as_bytes())?;
             } else {
@@ -127,8 +137,12 @@ pub(crate) async fn zip_files<T: AsRef<str>>(
     Ok(())
 }
 
-fn replace_all(input: String) -> String {
+fn replace_all_app(input: String) -> String {
     replace(input, APP_REPLACEMENTS)
+}
+
+fn replace_all_web(input: String) -> String {
+    replace(input, WEB_REPLACEMENTS)
 }
 
 pub(crate) async fn zip_dir(src_dir: &Path, out_file: &Path, app: bool) -> ZipResult<()> {
@@ -147,7 +161,7 @@ pub(crate) async fn zip_dir(src_dir: &Path, out_file: &Path, app: bool) -> ZipRe
             if name.ends_with("index.json") {
                 let mut buf = read_to_string(path).await?;
                 if app {
-                    buf = replace_all(buf);
+                    buf = replace_all_app(buf);
                 }
                 zip.write_all(buf.as_bytes())?;
             } else {
