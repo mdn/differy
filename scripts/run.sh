@@ -49,6 +49,21 @@ export BUILD_LIVE_SAMPLES_BASE_URL="https://yari-demos.prod.mdn.mozit.cloud"
 mkdir -p $BUILD_OUT_ROOT
 
 cd $WORKBENCH/yari
+
+export BUILD_LIVE_SAMPLES_BASE_URL=https://yari-demos.stage.mdn.mozit.cloud
+export BUILD_INTERACTIVE_EXAMPLES_BASE_URL=https://interactive-examples.stage.mdn.mozilla.net
+export BUILD_FLAW_LEVELS="*:ignore"
+export REACT_APP_ENABLE_PLUS=true
+export REACT_APP_DISABLE_AUTH=false
+export REACT_APP_INTERACTIVE_EXAMPLES_BASE_URL=https://interactive-examples.stage.mdn.mozilla.net
+export REACT_APP_FXA_SIGNIN_URL=/users/fxa/login/authenticate/
+export REACT_APP_FXA_SETTINGS_URL=https://accounts.stage.mozaws.net/settings/
+export REACT_APP_MDN_PLUS_SUBSCRIBE_URL=https://accounts.stage.mozaws.net/subscriptions/products/prod_Jtbg9tyGyLRuB0
+export REACT_APP_MDN_PLUS_5M_PLAN=price_1JFoTYKb9q6OnNsLalexa03p
+export REACT_APP_MDN_PLUS_5Y_PLAN=price_1JpIPwKb9q6OnNsLJLsIqMp7
+export REACT_APP_MDN_PLUS_10M_PLAN=price_1K6X7gKb9q6OnNsLi44HdLcC
+export REACT_APP_MDN_PLUS_10Y_PLAN=price_1K6X8VKb9q6OnNsLFlUcEiu4
+
 yarn
 yarn prepare-build
 yarn build -n
