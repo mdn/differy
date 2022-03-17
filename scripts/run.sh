@@ -52,6 +52,7 @@ cd $WORKBENCH/yari
 yarn
 yarn prepare-build
 yarn build -n
+cp -r client/build/* $BUILD_OUT_ROOT/
 
 cd $WORKBENCH/interactive-examples
 yarn
