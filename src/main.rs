@@ -145,7 +145,7 @@ async fn main() -> std::io::Result<()> {
         let update_json = std::path::PathBuf::from(from);
         let Update {
             updates, latest, ..
-        } = Update::from_file(&update_json)?;
+        } = Update::from_file(&update_json).unwrap_or_default();
 
         let mut to_be_updated = Vec::new();
         if let Some(latest) = latest {

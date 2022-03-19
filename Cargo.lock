@@ -322,7 +322,7 @@ dependencies = [
 
 [[package]]
 name = "differy"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "async-std",
  "chrono",

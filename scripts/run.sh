@@ -35,11 +35,14 @@ export REV=$(git rev-parse --short HEAD)
 
 cd $WORKBENCH
 curl -O $UPDATE_URL/update.json
-export LATEST=$(jq -r -c '.latest' update.json)
-if [ $LATEST == $REV]
+if [ -f "update.json" ]
 then
-	echo "Bundle already exsits for $REV"
-	exit 0
+	export LATEST=$(jq -r -c '.latest' update.json)
+	if [ $LATEST == $REV]
+	then
+		echo "Bundle already exsits for $REV"
+		exit 0
+	fi
 fi
 
 cd $WORKBENCH
@@ -59,11 +62,13 @@ yarn build
 mv docs $BUILD_OUT_ROOT/examples
 
 cd $WORKBENCH
-for OLD_REV in $(jq -r -c '.updates[]' update.json)
-do
-	curl -O $UPDATE_URL/packages/$OLD_REV-checksums.zip
-done
-curl -O $UPDATE_URL/packages/$LATEST-checksums.zip
+if [ -f "update.json" ]
+	for OLD_REV in $(jq -r -c '.updates[]' update.json)
+	do
+		curl -O $UPDATE_URL/packages/$OLD_REV-checksums.zip
+	done
+	curl -O $UPDATE_URL/packages/$LATEST-checksums.zip
+fi
 
 differy package $BUILD_OUT_ROOT --rev $REV
 cp update.json ${REV}-update.json
