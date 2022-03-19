@@ -63,6 +63,7 @@ mv docs $BUILD_OUT_ROOT/examples
 
 cd $WORKBENCH
 if [ -f "update.json" ]
+then
 	for OLD_REV in $(jq -r -c '.updates[]' update.json)
 	do
 		curl -O $UPDATE_URL/packages/$OLD_REV-checksums.zip
