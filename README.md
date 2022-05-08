@@ -27,7 +27,7 @@ all version we want to generate updates for.
 
 The `$BUILD_OUT_ROOT` directory should contain the artifacts of:
 
-- `yarn prepare-build && yarn build -n` from [mdn/content]
+- `yarn build:prepare && yarn build -n` from [mdn/content]
 - `yarn build` from [mdn/interactive-examples]
 
 **Differy** generates:

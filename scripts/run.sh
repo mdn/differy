@@ -53,7 +53,7 @@ mkdir -p $BUILD_OUT_ROOT
 
 cd $WORKBENCH/yari
 yarn
-yarn prepare-build
+yarn build:prepare
 yarn build -n
 
 cd $WORKBENCH/interactive-examples
