@@ -72,6 +72,16 @@ then
 fi
 
 differy package $BUILD_OUT_ROOT --rev $REV
+
+# Note this will fail if any individual file in the input .zip is OVER 1MB. 
+zipsplit -n 1048576 ${REV}-content.zip
+# Zipsplit only takes the first 4 chars of name as prefix. Replace with full REV.
+mmv `echo ${REV} | cut -c 1-4`\* ${REV}\#1
+# Files to Json array.
+FILES=`(ls -d -- *[0-9].zip | jq -R -s -c 'split("\n")[:-1]')`
+# Create update index.json
+echo "{\"root\": \"${REV}\", \"files\": ${FILES}}" > index.json
+
 cp update.json ${REV}-update.json
 cp ${REV}-content.json content.json
 
@@ -79,3 +89,5 @@ aws s3 cp . s3://${BUCKET}/packages/ --recursive --exclude "*" --include "${REV}
 aws s3 cp . s3://${BUCKET}/packages/ --recursive --exclude "*" --include "${REV}-*.json"
 aws s3 cp update.json s3://${BUCKET}/
 aws s3 cp content.json s3://${BUCKET}/
+aws s3 cp index.json s3://${BUCKET}/packages/${REV}-content/
+aws s3 cp . s3://${BUCKET}/packages/${REV}-content/ --recursive --exclude "*" --include "${REV}_*.zip"
