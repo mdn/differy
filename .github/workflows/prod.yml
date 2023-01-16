@@ -1,4 +1,8 @@
 name: Package for prod
+
+env:
+  DEFAULT_YARI_BRANCH: "main"
+
 on:
   workflow_dispatch:
     inputs:
@@ -6,6 +10,10 @@ on:
         description: "Notes"
         required: false
         default: ""
+      yari_branch:
+        description: "Yari branch to build against"
+        required: false
+        default: ${DEFAULT_YARI_BRANCH}
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron: "0 */24 * * *"
@@ -27,5 +35,6 @@ jobs:
         env: 
           UPDATE_URL: https://updates.developer.mozilla.org
           BUCKET: updates-prod-developer-mozilla-e2b95ed55d379b1a
+          YARI_BRANCH: ${{ inputs.yari_branch || env.DEFAULT_YARI_BRANCH }}
         run: |
           ${{ github.workspace }}/scripts/run.sh
