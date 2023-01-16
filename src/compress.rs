@@ -54,7 +54,7 @@ pub fn replace(input: String, replace: &[(&str, &str)]) -> String {
 
 pub(crate) fn zip_content(file_name: &str, content: &[u8], out_file: &Path) -> ZipResult<()> {
     let out_path = Path::new(out_file);
-    let file = std::fs::File::create(&out_path)?;
+    let file = std::fs::File::create(out_path)?;
 
     let mut zip = ZipWriter::new(file);
     let options = FileOptions::default()
@@ -108,13 +108,13 @@ pub(crate) async fn zip_files<T: AsRef<str>>(
     app: bool,
 ) -> ZipResult<()> {
     let out_path = Path::new(out_file);
-    let file = std::fs::File::create(&out_path)?;
+    let file = std::fs::File::create(out_path)?;
 
     let mut zip = ZipWriter::new(file);
     let options = FileOptions::default();
 
     for path in files {
-        let full_path = src_dir.join(&path.as_ref());
+        let full_path = src_dir.join(path.as_ref());
 
         if full_path.is_file().await {
             zip.start_file(path.as_ref(), options)?;
@@ -150,7 +150,7 @@ fn replace_all_web(input: String) -> String {
 
 pub(crate) async fn zip_dir(src_dir: &Path, out_file: &Path, app: bool) -> ZipResult<()> {
     let path = Path::new(out_file);
-    let file = std::fs::File::create(&path)?;
+    let file = std::fs::File::create(path)?;
 
     let mut zip = ZipWriter::new(file);
     let options = FileOptions::default();
