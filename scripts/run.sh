@@ -14,8 +14,9 @@ curl -L https://github.com/mdn/differy/releases/latest/download/differy-x86_64-u
 
 cd $WORKBENCH
 
-git clone https://github.com/mdn/yari.git
+git clone -b $YARI_BRANCH https://github.com/mdn/yari.git
 git clone https://github.com/mdn/content.git
+git clone https://github.com/mdn/bcd-utils.git
 git clone https://github.com/mdn/interactive-examples.git
 
 mkdir $WORKBENCH/ghsamples
@@ -55,6 +56,15 @@ cd $WORKBENCH/yari
 yarn
 yarn build:prepare
 yarn build -n
+
+cd $WORKBENCH/bcd-utils/api
+npm install
+npm run generate
+mkdir -p $BUILD_OUT_ROOT/bcd
+for query in $(<$BUILD_OUT_ROOT/allBrowserCompat.txt)
+do
+	mv out/v0/current/${query}.json $BUILD_OUT_ROOT/bcd/ || true
+done
 
 cd $WORKBENCH/interactive-examples
 yarn
