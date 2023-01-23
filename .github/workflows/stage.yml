@@ -31,10 +31,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.UPDATES_STAGE_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Set env
+        run: |
+          echo "YARI_BRANCH=${{ inputs.yari_branch || env.DEFAULT_YARI_BRANCH }}" >> $GITHUB_ENV
+
       - name: Do it!
         env: 
           UPDATE_URL: https://updates.developer.allizom.org
           BUCKET: updates-stage-developer-allizom-6d533edfe2c2c683
-          YARI_BRANCH: ${{ inputs.yari_branch || env.DEFAULT_YARI_BRANCH }}
         run: |
           ${{ github.workspace }}/scripts/run.sh
