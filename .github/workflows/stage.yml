@@ -24,6 +24,11 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
 
+      - name: Set up node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
       - name: Configure AWS credentials for stage
         uses: aws-actions/configure-aws-credentials@v1
         with:
