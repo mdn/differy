@@ -94,6 +94,7 @@ aws s3 cp content.json s3://${BUCKET}/
 # NOTE: gsutil does not have the ability to `include` and only the ability to exclude
 #   this is also not documented on the limitations page
 #   https://cloud.google.com/storage/docs/gsutil/commands/rsync#limitations
-gsutil -m -h "Cache-Control:public, max-age=86400" rsync -r "${REV}-*.zip" "${REV}-*.json" gs://${GCS_BUCKET}/packages/
+gsutil -m -h "Cache-Control:public, max-age=86400" rsync -r "${REV}-*.zip" gs://${GCS_BUCKET}/packages/
+gsutil -m -h "Cache-Control:public, max-age=86400" rsync -r "${REV}-*.json" gs://${GCS_BUCKET}/packages/
 gsutil cp update.json gs://${GCS_BUCKET}/
 gsutil cp content.json gs://${GCS_BUCKET}/
