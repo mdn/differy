@@ -89,3 +89,12 @@ aws s3 cp . s3://${BUCKET}/packages/ --recursive --exclude "*" --include "${REV}
 aws s3 cp . s3://${BUCKET}/packages/ --recursive --exclude "*" --include "${REV}-*.json"
 aws s3 cp update.json s3://${BUCKET}/
 aws s3 cp content.json s3://${BUCKET}/
+
+# Sync to GCP
+# NOTE: gsutil does not have the ability to `include` and only the ability to exclude
+#   this is also not documented on the limitations page
+#   https://cloud.google.com/storage/docs/gsutil/commands/rsync#limitations
+TO_UPLOAD=$(find ./ -name "${REV}-*.zip" -o name "${REV}-*.json")
+gsutil -m -h "Cache-Control:public, max-age=86400" rsync -r $TO_UPLOAD gs://${GCS_BUCKET}/packages/
+gsutil cp update.json gs://${GCS_BUCKET}/
+gsutil cp content.json gs://${GCS_BUCKET}/

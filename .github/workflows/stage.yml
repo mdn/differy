@@ -17,8 +17,19 @@ on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron: "0 */24 * * *"
+  workflow_call:
+    secrets:
+      GCP_PROJECT_NAME:
+        required: true
+      WIP_PROJECT_ID:
+        required: true
+
 jobs:
   everything:
+    environment: stage
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -40,9 +51,20 @@ jobs:
         run: |
           echo "YARI_BRANCH=${{ inputs.yari_branch || env.DEFAULT_YARI_BRANCH }}" >> $GITHUB_ENV
 
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v0
+        with:
+          token_format: access_token
+          service_account: deploy-stage-updates@${{ secrets.GCP_PROJECT_NAME }}.iam.gserviceaccount.com
+          workload_identity_provider: projects/${{ secrets.WIP_PROJECT_ID }}/locations/global/workloadIdentityPools/github-actions/providers/github-actions
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v1
+
       - name: Do it!
         env: 
           UPDATE_URL: https://updates.developer.allizom.org
           BUCKET: updates-stage-developer-allizom-6d533edfe2c2c683
+          GCS_BUCKET: updates-stage-mdn
         run: |
           ${{ github.workspace }}/scripts/run.sh
