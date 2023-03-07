@@ -89,3 +89,9 @@ aws s3 cp . s3://${BUCKET}/packages/ --recursive --exclude "*" --include "${REV}
 aws s3 cp . s3://${BUCKET}/packages/ --recursive --exclude "*" --include "${REV}-*.json"
 aws s3 cp update.json s3://${BUCKET}/
 aws s3 cp content.json s3://${BUCKET}/
+
+# Sync to GCP
+gsutil -m -h "Cache-Control:public, max-age=86400" cp "${REV}-*.zip" gs://${GCS_BUCKET}/packages/
+gsutil -m -h "Cache-Control:public, max-age=86400" cp "${REV}-*.json" gs://${GCS_BUCKET}/packages/
+gsutil cp update.json gs://${GCS_BUCKET}/
+gsutil cp content.json gs://${GCS_BUCKET}/
