@@ -17,8 +17,20 @@ on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron: "0 */24 * * *"
+  workflow_call:
+    secrets:
+      GCP_PROJECT_NAME:
+        required: true
+      WIP_PROJECT_ID:
+        required: true
+
+
 jobs:
   everything:
+    environment: prod
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -29,7 +41,7 @@ jobs:
         with:
           node-version: 18
 
-      - name: Configure AWS credentials for stage
+      - name: Configure AWS credentials for prod
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.UPDATES_PROD_AWS_ACCESS_KEY_ID }}
@@ -40,9 +52,17 @@ jobs:
         run: |
           echo "YARI_BRANCH=${{ inputs.yari_branch || env.DEFAULT_YARI_BRANCH }}" >> $GITHUB_ENV
 
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v0
+        with:
+          token_format: access_token
+          service_account: deploy-prod-updates@${{ secrets.GCP_PROJECT_NAME }}.iam.gserviceaccount.com
+          workload_identity_provider: projects/${{ secrets.WIP_PROJECT_ID }}/locations/global/workloadIdentityPools/github-actions/providers/github-actions
+
       - name: Do it!
         env: 
           UPDATE_URL: https://updates.developer.mozilla.org
           BUCKET: updates-prod-developer-mozilla-e2b95ed55d379b1a
+          GCS_BUCKET: updates-prod-mdn
         run: |
           ${{ github.workspace }}/scripts/run.sh
