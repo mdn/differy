@@ -59,6 +59,9 @@ jobs:
           service_account: deploy-prod-updates@${{ secrets.GCP_PROJECT_NAME }}.iam.gserviceaccount.com
           workload_identity_provider: projects/${{ secrets.WIP_PROJECT_ID }}/locations/global/workloadIdentityPools/github-actions/providers/github-actions
 
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v1
+
       - name: Do it!
         env: 
           UPDATE_URL: https://updates.developer.mozilla.org
