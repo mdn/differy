@@ -99,7 +99,7 @@ update.json
 ## Automating and Uploading Artifacts
 
 We include a shell script that automates everything we need to generate
-the latest bundles. And then uploads it to S3 for distribution.
+the latest bundles. And then uploads it to GCS for distribution.
 
 Take a look at [scripts/run.sh](scripts/run.sh)
 
