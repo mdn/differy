@@ -40,13 +40,6 @@ jobs:
         with:
           node-version: 18
 
-      - name: Configure AWS credentials for stage
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.UPDATES_STAGE_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.UPDATES_STAGE_AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
       - name: Set env
         run: |
           echo "YARI_BRANCH=${{ inputs.yari_branch || env.DEFAULT_YARI_BRANCH }}" >> $GITHUB_ENV
