@@ -12,7 +12,7 @@ const APP_REPLACEMENTS: &[(&str, &str)] = &[
         "src=\\\"mdn-app://examples/examples",
     ),
     (
-        "src=\\\"https://yari-demos.prod.mdn.mozit.cloud",
+        "src=\\\"https://live-samples.mdn.mozilla.net",
         "src=\\\"mdn-app://yari-demos",
     ),
 ];
@@ -22,10 +22,7 @@ const WEB_REPLACEMENTS: &[(&str, &str)] = &[
         "src=\\\"https://interactive-examples.mdn.mozilla.net",
         "src=\\\"/examples",
     ),
-    (
-        "src=\\\"https://yari-demos.prod.mdn.mozit.cloud",
-        "src=\\\"",
-    ),
+    ("src=\\\"https://live-samples.mdn.mozilla.net", "src=\\\""),
 ];
 
 pub fn replace(input: String, replace: &[(&str, &str)]) -> String {
@@ -188,7 +185,7 @@ mod test {
 
     #[test]
     fn test_replace_web() {
-        let raw = r#"<iframe src=\"https://yari-demos.prod.mdn.mozit.cloud/foo\">"#;
+        let raw = r#"<iframe src=\"https://live-samples.mdn.mozilla.net/foo\">"#;
         let out = replace_all_web(raw.to_string());
         assert_eq!(r#"<iframe src=\"/foo\">"#, &out);
         let raw = r#"<iframe src=\"https://interactive-examples.mdn.mozilla.net/foo\">"#;
