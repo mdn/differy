@@ -13,7 +13,7 @@ const APP_REPLACEMENTS: &[(&str, &str)] = &[
     ),
     (
         "src=\\\"https://live-samples.mdn.mozilla.net",
-        "src=\\\"mdn-app://yari-demos",
+        "src=\\\"mdn-app://live-samples",
     ),
 ];
 
