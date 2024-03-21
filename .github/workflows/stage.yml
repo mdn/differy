@@ -21,6 +21,8 @@ on:
     secrets:
       GCP_PROJECT_NAME:
         required: true
+      PING_URL_ISSUES:
+        required: false
       WIP_PROJECT_ID:
         required: true
 
@@ -61,3 +63,9 @@ jobs:
           GCS_BUCKET: updates-stage-mdn
         run: |
           ${{ github.workspace }}/scripts/run.sh
+
+      - name: Ping
+        env:
+          ping_url: ${{ secrets.PING_URL }}
+        if: ${{ env.ping_url != '' }}
+        run: curl ${{ env.ping_url }}
