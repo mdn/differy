@@ -67,8 +67,8 @@ do
 done
 
 cd $WORKBENCH/interactive-examples
-yarn
-yarn build
+npm install
+npm run build
 mv docs $BUILD_OUT_ROOT/examples
 
 cd $WORKBENCH

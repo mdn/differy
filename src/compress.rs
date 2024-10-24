@@ -3,7 +3,7 @@ use async_std::path::Path;
 use std::io::{Read, Write};
 use walkdir::WalkDir;
 use zip::result::ZipResult;
-use zip::write::FileOptions;
+use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
 const APP_REPLACEMENTS: &[(&str, &str)] = &[
@@ -54,7 +54,7 @@ pub(crate) fn zip_content(file_name: &str, content: &[u8], out_file: &Path) -> Z
     let file = std::fs::File::create(out_path)?;
 
     let mut zip = ZipWriter::new(file);
-    let options = FileOptions::default()
+    let options = SimpleFileOptions::default()
         .compression_method(CompressionMethod::DEFLATE)
         .unix_permissions(0o644);
 
@@ -85,7 +85,7 @@ pub(crate) fn zip_append_buf<T: AsRef<str>, B: AsRef<[u8]>>(
         .open(zip_file_path)?;
 
     let mut zip = ZipWriter::new_append(file)?;
-    let options = FileOptions::default()
+    let options = SimpleFileOptions::default()
         .compression_method(CompressionMethod::DEFLATE)
         .unix_permissions(0o644);
 
@@ -108,7 +108,7 @@ pub(crate) async fn zip_files<T: AsRef<str>>(
     let file = std::fs::File::create(out_path)?;
 
     let mut zip = ZipWriter::new(file);
-    let options = FileOptions::default();
+    let options = SimpleFileOptions::default();
 
     for path in files {
         let full_path = src_dir.join(path.as_ref());
@@ -150,7 +150,7 @@ pub(crate) async fn zip_dir(src_dir: &Path, out_file: &Path, app: bool) -> ZipRe
     let file = std::fs::File::create(path)?;
 
     let mut zip = ZipWriter::new(file);
-    let options = FileOptions::default();
+    let options = SimpleFileOptions::default();
 
     for entry in WalkDir::new(src_dir).into_iter().filter_map(|e| e.ok()) {
         let path = entry.path();

@@ -18,98 +18,70 @@ mod update;
 
 const NUM_VERSION_DEFAULT: usize = 14;
 
-#[async_std::main]
-async fn main() -> std::io::Result<()> {
-    let matches = Command::new("differy")
+fn cli() -> Command {
+    Command::new("differy")
         .version(crate_version!())
         .author("Florian Dieminger <me@fiji-flo.de>")
         .about("Hash and diff all the things")
         .subcommand(
             Command::new("hash")
                 .about("Hash all files")
-                .arg(
-                    Arg::new("PATH")
-                        .required(true)
-                        .help("Path to scan")
-                        .takes_value(true),
-                )
+                .arg(Arg::new("PATH").required(true).help("Path to scan"))
                 .arg(
                     Arg::new("out")
                         .long("out")
                         .short('o')
                         .required(true)
-                        .help("Output file")
-                        .takes_value(true),
+                        .help("Output file"),
                 ),
         )
         .subcommand(
             Command::new("diff")
                 .about("Diff two hash files")
-                .arg(
-                    Arg::new("old")
-                        .required(true)
-                        .help("Old hash file")
-                        .takes_value(true),
-                )
-                .arg(
-                    Arg::new("new")
-                        .required(true)
-                        .help("New hash file")
-                        .takes_value(true),
-                )
+                .arg(Arg::new("old").required(true).help("Old hash file"))
+                .arg(Arg::new("new").required(true).help("New hash file"))
                 .arg(
                     Arg::new("out")
                         .long("out")
                         .short('o')
                         .required(true)
-                        .help("Output file")
-                        .takes_value(true),
+                        .help("Output file"),
                 ),
         )
         .subcommand(
             Command::new("package")
                 .about("Package an update zip")
-                .arg(
-                    Arg::new("root")
-                        .required(true)
-                        .help("Build root")
-                        .takes_value(true),
-                )
+                .arg(Arg::new("root").required(true).help("Build root"))
                 .arg(
                     Arg::new("from")
                         .long("from")
                         .short('f')
-                        .help("Old update.json")
-                        .takes_value(true),
+                        .help("Old update.json"),
                 )
                 .arg(
                     Arg::new("num_updates")
                         .long("num")
                         .short('n')
-                        .help("how many version to support")
-                        .takes_value(true),
+                        .help("how many version to support"),
                 )
                 .arg(
                     Arg::new("rev")
                         .long("rev")
                         .short('r')
                         .required(false)
-                        .help("Current rev")
-                        .takes_value(true),
+                        .help("Current rev"),
                 )
-                .arg(
-                    Arg::new("out")
-                        .long("out")
-                        .short('o')
-                        .help("Output folder")
-                        .takes_value(true),
-                ),
+                .arg(Arg::new("out").long("out").short('o').help("Output folder")),
         )
-        .get_matches();
+}
+
+#[async_std::main]
+async fn main() -> std::io::Result<()> {
+    let matches = cli().get_matches();
 
     if let Some(matches) = matches.subcommand_matches("hash") {
-        let path = matches.value_of("PATH").unwrap();
-        let out = matches.value_of("out").unwrap();
+        let path = matches.get_one::<String>("PATH").unwrap();
+        let out = matches.get_one::<String>("out").unwrap();
         let mut out_file = File::create(out).await?;
         let path = PathBuf::from(path);
         let mut hashes = vec![];
@@ -121,9 +93,9 @@ async fn main() -> std::io::Result<()> {
         }
     }
     if let Some(matches) = matches.subcommand_matches("diff") {
-        let old = matches.value_of("old").unwrap();
-        let new = matches.value_of("new").unwrap();
-        let out = matches.value_of("out").unwrap();
+        let old = matches.get_one::<String>("old").unwrap();
+        let new = matches.get_one::<String>("new").unwrap();
+        let out = matches.get_one::<String>("out").unwrap();
         let mut out_file = File::create(out).await?;
         let old = PathBuf::from(old);
         let new = PathBuf::from(new);
@@ -131,17 +103,23 @@ async fn main() -> std::io::Result<()> {
         diff.write(&mut out_file).await?;
     }
     if let Some(matches) = matches.subcommand_matches("package") {
-        let root = matches.value_of("root").unwrap();
-        let out = matches.value_of("out").unwrap_or(".");
-        let current_rev = matches.value_of("rev").unwrap();
+        let root = matches.get_one::<String>("root").unwrap();
+        let out = matches
+            .get_one::<String>("out")
+            .map(|s| s.as_str())
+            .unwrap_or(".");
+        let current_rev = matches.get_one::<String>("rev").unwrap();
         let root = PathBuf::from(root);
         let out = PathBuf::from(out);
         let num_versions = matches
-            .value_of("num_updates")
+            .get_one::<String>("num_updates")
             .and_then(|s| s.parse::<usize>().ok())
             .unwrap_or(NUM_VERSION_DEFAULT);
 
-        let from = matches.value_of("from").unwrap_or("update.json");
+        let from = matches
+            .get_one::<String>("from")
+            .map(|s| s.as_str())
+            .unwrap_or("update.json");
         let update_json = std::path::PathBuf::from(from);
         let Update {
             updates, latest, ..
@@ -149,7 +127,7 @@ async fn main() -> std::io::Result<()> {
 
         let mut to_be_updated = Vec::new();
         if let Some(latest) = latest {
-            if current_rev != latest {
+            if *current_rev != latest {
                 to_be_updated.push(latest);
             }
         }
@@ -189,4 +167,9 @@ async fn main() -> std::io::Result<()> {
         update.save(&update_json)?;
     }
     Ok(())
+}
+
+#[test]
+fn verify_cli() {
+    cli().debug_assert();
 }
