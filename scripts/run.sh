@@ -55,7 +55,7 @@ mkdir -p $BUILD_OUT_ROOT
 cd $WORKBENCH/yari
 yarn
 yarn build:prepare
-yarn build -n
+yarn build
 
 cd $WORKBENCH/bcd-utils/api
 npm install
