@@ -88,7 +88,7 @@ async fn main() -> std::io::Result<()> {
         hash::hash_all(&path, &mut hashes, &path).await?;
         for (hash, filename) in hashes {
             out_file
-                .write_all(format!("{} {}\n", hash, filename).as_bytes())
+                .write_all(format!("{hash} {filename}\n").as_bytes())
                 .await?;
         }
     }
@@ -142,11 +142,11 @@ async fn main() -> std::io::Result<()> {
         for version in to_be_updated {
             let checksum_file = format!("{}-checksums", &version);
             let checksum_zip_file = PathBuf::from(&checksum_file).with_extension("zip");
-            println!("packaging update {} → {}", current_rev, version);
+            println!("packaging update {current_rev} → {version}");
             let old_hashes_raw = match unzip_content(&checksum_zip_file, &checksum_file) {
                 Ok(r) => r,
                 Err(e) => {
-                    println!("Error unpacking: {:?}.zip: {}", checksum_file, e);
+                    println!("Error unpacking: {checksum_file:?}.zip: {e}");
                     continue;
                 }
             };
@@ -156,7 +156,7 @@ async fn main() -> std::io::Result<()> {
             package_update(&root, &diff, &out, &update_prefix).await?;
             updated.push(version);
         }
-        println!("building content for {}", current_rev);
+        println!("building content for {current_rev}");
         package_content(&root, &out, current_rev, &new_hashes).await?;
 
         let update = Update {

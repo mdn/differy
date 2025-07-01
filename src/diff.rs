@@ -46,17 +46,17 @@ impl Diff {
     pub async fn write(&self, out_file: &mut File) -> std::io::Result<()> {
         for filename in &self.removed {
             out_file
-                .write_all(format!("- {}\n", filename).as_bytes())
+                .write_all(format!("- {filename}\n").as_bytes())
                 .await?;
         }
         for filename in &self.added {
             out_file
-                .write_all(format!("+ {}\n", filename).as_bytes())
+                .write_all(format!("+ {filename}\n").as_bytes())
                 .await?;
         }
         for filename in &self.modified {
             out_file
-                .write_all(format!("~ {}\n", filename).as_bytes())
+                .write_all(format!("~ {filename}\n").as_bytes())
                 .await?;
         }
         Ok(())
