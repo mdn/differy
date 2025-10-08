@@ -1,19 +1,14 @@
 name: Package for stage
 
-env:
-  DEFAULT_YARI_BRANCH: "main"
-
 on:
   workflow_dispatch:
     inputs:
       notes:
         description: "Notes"
-        required: false
-        default: ""
+        type: string
       yari_branch:
-        description: "Yari branch to build against"
-        required: false
-        default: ${DEFAULT_YARI_BRANCH}
+        description: "Yari branch to build against (default: main)"
+        type: string
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron: "0 */24 * * *"
@@ -25,6 +20,9 @@ on:
         required: false
       WIP_PROJECT_ID:
         required: true
+
+env:
+  YARI_BRANCH: ${{ inputs.yari_branch || 'main' }}
 
 jobs:
   everything:
@@ -41,10 +39,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-
-      - name: Set env
-        run: |
-          echo "YARI_BRANCH=${{ inputs.yari_branch || env.DEFAULT_YARI_BRANCH }}" >> $GITHUB_ENV
 
       - name: Authenticate with GCP
         uses: google-github-actions/auth@v2
