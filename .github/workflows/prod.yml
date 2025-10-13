@@ -53,7 +53,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Do it!
-        env: 
+        env:
           UPDATE_URL: https://updates.developer.mozilla.org
           BUCKET: updates-prod-developer-mozilla-e2b95ed55d379b1a
           GCS_BUCKET: updates-prod-mdn
