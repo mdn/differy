@@ -41,6 +41,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
+          package-manager-cache: false
 
       - name: Authenticate with GCP
         uses: google-github-actions/auth@v2
