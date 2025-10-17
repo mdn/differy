@@ -9,6 +9,9 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+# No GITHUB_TOKEN permissions, as we don't use it.
+permissions: {}
+
 jobs:
   build:
     runs-on: ubuntu-latest
