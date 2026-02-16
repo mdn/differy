@@ -21,7 +21,7 @@ const NUM_VERSION_DEFAULT: usize = 14;
 fn cli() -> Command {
     Command::new("differy")
         .version(crate_version!())
-        .author("Florian Dieminger <me@fiji-flo.de>")
+        .author("MDN Engineering Team <mdn-dev@mozilla.com>")
         .about("Hash and diff all the things")
         .subcommand(
             Command::new("hash")
