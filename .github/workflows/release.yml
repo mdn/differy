@@ -30,4 +30,3 @@ jobs:
         with:
           bin: differy
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
