@@ -29,4 +29,3 @@ jobs:
       - uses: taiki-e/upload-rust-binary-action@10c1cf6a3da113ad4e60018e386570529aa5f1d3 # v1.30.0
         with:
           bin: differy
-        env:
