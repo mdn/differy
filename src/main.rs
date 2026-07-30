@@ -140,7 +140,7 @@ async fn main() -> std::io::Result<()> {
 
         let mut updated = vec![];
         for version in to_be_updated {
-            let checksum_file = format!("{}-checksums", &version);
+            let checksum_file = format!("{}-checksums", version);
             let checksum_zip_file = PathBuf::from(&checksum_file).with_extension("zip");
             println!("packaging update {current_rev} → {version}");
             let old_hashes_raw = match unzip_content(&checksum_zip_file, &checksum_file) {
@@ -150,7 +150,7 @@ async fn main() -> std::io::Result<()> {
                     continue;
                 }
             };
-            let update_prefix = format!("{}-{}", current_rev, &version);
+            let update_prefix = format!("{}-{}", current_rev, version);
             let diff = diff(&parse_hashes(&old_hashes_raw), new_hashes.as_slice())?;
 
             package_update(&root, &diff, &out, &update_prefix).await?;
