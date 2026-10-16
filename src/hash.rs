@@ -12,7 +12,7 @@ pub(crate) async fn hash_all(
         if !path.is_dir() {
             let hash = sha2::Sha256::digest(fs::read(entry.path()).await?);
             out.push((
-                format!("{hash:x}"),
+                hash.iter().map(|b| format!("{b:02x}")).collect(),
                 entry
                     .path()
                     .strip_prefix(base)
